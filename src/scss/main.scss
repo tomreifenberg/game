@@ -3,6 +3,7 @@ canvas {
   }
   
   /* 4. Over lay the score on the top left corner of the canvas.*/
+//   I need to check function of gulp / git to see why changes made here aren't updating in localhost for color, canvas, etc
   #score {
     position: absolute;
     top: 20px;
