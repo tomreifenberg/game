@@ -9,12 +9,12 @@ var game = (function(){
       y:475,
       h: 25,
       w: 25,
-      fill: '#fff'
+      fill: '#fff',
       //1. Add a default direction for player movement.
-    dir: 'right'
-    //1. Add a speed property to the player this is the number of pixels 
-    //the player will move each frame
-    speed: 5
+      dir: 'right',
+      //1. Add a speed property to the player this is the number of pixels 
+      //the player will move each frame
+      speed: 5
     }
 
     //1. Define an enemy spawn
@@ -40,6 +40,9 @@ var game = (function(){
     //2. Track the state of game-over
     var gameOver = false;
 
+    //1. Create a variable to hold the score
+    var score = 0;
+
     function launchSpawns(){
         //3. Create a new enemy spawn every 400 ms
         spawner = setInterval(()=>{
@@ -63,9 +66,10 @@ var game = (function(){
     
         },400);
       }
-
   //6. Move all spawns
-  function moveSpawns(){
+ 
+
+    function moveSpawns(){
 
     //7. Loop through the Object of spawns
     //and move each one individually.
@@ -96,9 +100,31 @@ var game = (function(){
           );
 
           ctx.restore();
+
+            //3. When each spawn moves detect if that spawn shares common pixels
+            //with the player. If so this is a collision.
+            //@see https://developer.mozilla.org/en-US/docs/Games/Techniques/2D_collision_detection
+            if (
+                player.x < spawns[spawn].x + spawns[spawn].w &&
+                spawns[spawn].x > player.x && spawns[spawn].x < (player.x + player.w) &&
+                player.y < spawns[spawn].y + spawns[spawn].h &&
+                player.y + player.h > spawns[spawn].y
+              ){
+                //4. If there is a collision set gameOver to true
+                gameOver = true;
+                //5. ...kill the animation frames
+                cancelAnimationFrame(animation);
+                //6. ...kill the spawner
+                clearInterval(spawner);
+              }
           
 
         }else{
+            //2. Increment the score when any time
+            //an enemy sprite move off screen
+            score = score + 10;
+            //3. Write the score to a separate div
+            document.getElementById('score').innerHTML = score;
           //9. Delete the spawn from the Object of spawns if 
           // that spawn has moved off of the screen.
           delete spawns[spawn];
@@ -108,10 +134,13 @@ var game = (function(){
 
   }
   
-    return {
+    
       //2. Draw the player to the canvas
-      player: function(){
+    //   player: function(){
+        function movePlayer(){
         ctx.fillStyle=player.fill;
+
+        if(player.dir === 'right'){
   
         //1. Define how many pixels the player
         // should move each frame (i.e. speed)
@@ -160,31 +189,35 @@ var game = (function(){
           player.dir = 'right';
         }
       }
-    },
-  
-        //1. Create a setter for changing the current direction of the user.
-        changeDirection: function(){
-            if(player.dir === 'left'){
-              player.dir = 'right';
-            }else if(player.dir === 'right'){
-              player.dir = 'left';
-            }
-          },
-      //2. Create an animation frame
-      //3. Redraw the player every time a frame is executed
-      animate: function(){
-        this.player();
-        window.requestAnimationFrame(this.animate.bind(this));
-      }
-  
-      init: function(){
-        canvas.height = 600;
-        canvas.width = 800;
-  
-        this.animate();
-      }
     }
-  })();
+    function animate(){
+        movePlayer();
+        moveSpawns();
+        if(gameOver===false){
+          animation = window.requestAnimationFrame(animate.bind(animation));
+        }
+      }
+    
+      return {
+    
+        changeDirection: function(){
+          if(player.dir === 'left'){
+            player.dir = 'right';
+          }else if(player.dir === 'right'){
+            player.dir = 'left';
+          }
+        },
+    
+        init: function(){
+          canvas.height = 600;
+          canvas.width = 800;
+    
+          launchSpawns();
+          animate();
+        }
+      }
+    })();
+        
   
   game.init();
   
@@ -193,4 +226,4 @@ var game = (function(){
 window.addEventListener('keyup', function(){
     game.changeDirection();
   });
- 
+
